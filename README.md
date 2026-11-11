@@ -26,7 +26,7 @@ On each run it:
 | Input | Default | Meaning |
 |---|---|---|
 | `path` | required | Folder to publish |
-| `private-key` | required | Key of the wallet that pays for storage and updates the ENS name |
+| `private-key` | required | Key of the single wallet that pays for storage (via Filecoin Pay) and updates the ENS name. It needs USDFC and, for ENS, ETH and delegate approval; see [Wallet setup](#wallet-setup) |
 | `ens-name` | empty | ENS name to point at the new CID. Empty skips the ENS update |
 | `network` | `mainnet` | `mainnet` or `calibration` |
 | `copies` | `2` | Number of storage providers |
