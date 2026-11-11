@@ -1,0 +1,22 @@
+{
+  "name": "filoz-webmaster",
+  "version": "0.1.0",
+  "description": "Publish a folder to Filecoin Onchain Cloud and point an ENS name at it",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@filoz/synapse-sdk": "^2.0.2",
+    "@helia/unixfs": "^8.0.9",
+    "@ipld/car": "^5.4.7",
+    "blockstore-core": "^7.0.1",
+    "multiformats": "^14.0.5",
+    "viem": "^2.57.18"
+  }
+}

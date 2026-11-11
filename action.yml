@@ -1,0 +1,72 @@
+name: filoz-webmaster
+description: Publish a folder to Filecoin Onchain Cloud and point an ENS name at it
+
+inputs:
+  path:
+    description: Folder to publish
+    required: true
+  private-key:
+    description: Private key of the wallet that pays for storage and, when ens-name is set, is an approved delegate for that name
+    required: true
+  ens-name:
+    description: ENS name whose contenthash is set to the new CID. Leave empty to skip the ENS update
+    required: false
+    default: ''
+  network:
+    description: mainnet or calibration
+    required: false
+    default: mainnet
+  copies:
+    description: Number of storage providers to store on
+    required: false
+    default: '2'
+  eth-rpc-url:
+    description: Ethereum mainnet RPC for the ENS read and update
+    required: false
+    default: https://ethereum-rpc.publicnode.com
+  verify-timeout:
+    description: Seconds to wait for a provider to serve the new CID before failing
+    required: false
+    default: '600'
+  dry-run:
+    description: Pack the folder and report the CID without uploading
+    required: false
+    default: 'false'
+
+outputs:
+  cid:
+    description: IPFS root CID of the folder
+    value: ${{ steps.publish.outputs.cid }}
+  previous-cid:
+    description: CID the ENS name pointed at before this run
+    value: ${{ steps.publish.outputs.previous-cid }}
+  piece-cid:
+    description: Piece CID stored on Filecoin Onchain Cloud
+    value: ${{ steps.publish.outputs.piece-cid }}
+  ens-tx:
+    description: Ethereum transaction that updated the ENS name
+    value: ${{ steps.publish.outputs.ens-tx }}
+  changed:
+    description: true when a new CID was published
+    value: ${{ steps.publish.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+    - shell: bash
+      run: npm ci --ignore-scripts --no-audit --no-fund --prefix "$GITHUB_ACTION_PATH"
+    - id: publish
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/src/main.mjs"
+      env:
+        WEBMASTER_PATH: ${{ inputs.path }}
+        WEBMASTER_PRIVATE_KEY: ${{ inputs.private-key }}
+        WEBMASTER_ENS_NAME: ${{ inputs.ens-name }}
+        WEBMASTER_NETWORK: ${{ inputs.network }}
+        WEBMASTER_COPIES: ${{ inputs.copies }}
+        WEBMASTER_ETH_RPC_URL: ${{ inputs.eth-rpc-url }}
+        WEBMASTER_VERIFY_TIMEOUT: ${{ inputs.verify-timeout }}
+        WEBMASTER_DRY_RUN: ${{ inputs.dry-run }}
