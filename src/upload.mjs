@@ -4,6 +4,12 @@ import { privateKeyToAccount } from 'viem/accounts'
 
 const CHAINS = { mainnet, calibration }
 
+function serves(url) {
+  return fetch(url, { signal: AbortSignal.timeout(30_000) })
+    .then((res) => res.ok)
+    .catch(() => false)
+}
+
 export async function upload({ car, rootCid, privateKey, network, copies, log }) {
   const chain = CHAINS[network]
   if (chain == null) throw new Error(`Unknown network: ${network}`)
@@ -18,6 +24,19 @@ export async function upload({ car, rootCid, privateKey, network, copies, log })
     copies,
     metadata: { withIPFSIndexing: '' },
   })
+
+  const held = contexts.map((context) => ({
+    providerId: context.provider.id.toString(),
+    dataSetId: context.dataSetId?.toString() ?? '',
+    origin: new URL(context.provider.pdp.serviceURL).origin,
+  }))
+  const present = await Promise.all(
+    held.map((copy) => copy.dataSetId !== '' && serves(`${copy.origin}/ipfs/${rootCid}/`)),
+  )
+  if (present.every(Boolean)) {
+    log(`Already served by ${held.map((copy) => `provider ${copy.providerId}`).join(', ')}, not uploading again`)
+    return { pieceCid: '', uploaded: false, copies: held, failed: [] }
+  }
 
   const prepared = await synapse.storage.prepare({
     context: contexts,
@@ -45,7 +64,7 @@ export async function upload({ car, rootCid, privateKey, network, copies, log })
 
   return {
     pieceCid: result.pieceCid.toString(),
-    complete: result.complete,
+    uploaded: true,
     copies: result.copies.map((copy) => ({
       providerId: copy.providerId.toString(),
       dataSetId: copy.dataSetId.toString(),
@@ -66,10 +85,7 @@ export async function verifyRetrieval({ rootCid, copies, timeoutMs, log }) {
 
   while (pending.size > 0) {
     for (const [providerId, url] of pending) {
-      const ok = await fetch(url, { signal: AbortSignal.timeout(30_000) })
-        .then((res) => res.ok)
-        .catch(() => false)
-      if (ok) {
+      if (await serves(url)) {
         log(`Provider ${providerId} serves ${url}`)
         served.push(providerId)
         pending.delete(providerId)

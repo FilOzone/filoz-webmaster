@@ -1,7 +1,7 @@
 {
   "name": "filoz-webmaster",
   "version": "0.1.0",
-  "description": "Publish a folder to Filecoin Onchain Cloud and point an ENS name at it",
+  "description": "Publish a folder to Filecoin Cloud and point an ENS name or a DNSLink record at it",
   "type": "module",
   "private": true,
   "license": "MIT",
