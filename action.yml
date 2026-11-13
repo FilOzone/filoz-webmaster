@@ -1,5 +1,5 @@
 name: filoz-webmaster
-description: Publish a folder to Filecoin Onchain Cloud and point an ENS name at it
+description: Publish a folder to Filecoin Cloud and point an ENS name or a DNSLink record at it
 
 inputs:
   path:
@@ -10,6 +10,18 @@ inputs:
     required: true
   ens-name:
     description: ENS name whose contenthash is set to the new CID. Leave empty to skip the ENS update
+    required: false
+    default: ''
+  dnslink-name:
+    description: DNS name whose _dnslink TXT record is set to the new CID. Leave empty to skip the DNSLink update
+    required: false
+    default: ''
+  cloudflare-api-token:
+    description: Cloudflare API token with the DNS Write permission on the zone. Needed when dnslink-name is set
+    required: false
+    default: ''
+  cloudflare-zone-id:
+    description: Cloudflare zone ID of the zone that holds dnslink-name
     required: false
     default: ''
   network:
@@ -40,8 +52,11 @@ outputs:
   previous-cid:
     description: CID the ENS name pointed at before this run
     value: ${{ steps.publish.outputs.previous-cid }}
+  dnslink-previous-cid:
+    description: CID the DNSLink record named before this run
+    value: ${{ steps.publish.outputs.dnslink-previous-cid }}
   piece-cid:
-    description: Piece CID stored on Filecoin Onchain Cloud
+    description: Piece CID stored on Filecoin Cloud
     value: ${{ steps.publish.outputs.piece-cid }}
   ens-tx:
     description: Ethereum transaction that updated the ENS name
@@ -65,6 +80,9 @@ runs:
         WEBMASTER_PATH: ${{ inputs.path }}
         WEBMASTER_PRIVATE_KEY: ${{ inputs.private-key }}
         WEBMASTER_ENS_NAME: ${{ inputs.ens-name }}
+        WEBMASTER_DNSLINK_NAME: ${{ inputs.dnslink-name }}
+        WEBMASTER_CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+        WEBMASTER_CLOUDFLARE_ZONE_ID: ${{ inputs.cloudflare-zone-id }}
         WEBMASTER_NETWORK: ${{ inputs.network }}
         WEBMASTER_COPIES: ${{ inputs.copies }}
         WEBMASTER_ETH_RPC_URL: ${{ inputs.eth-rpc-url }}
