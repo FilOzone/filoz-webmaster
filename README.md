@@ -6,12 +6,12 @@ On each run it:
 
 1. Packs the folder into a CAR file and works out its IPFS root CID.
 2. Stops if every target (the ENS name, the DNSLink record) already points at that CID.
-3. Stores the CAR on two storage providers through the Synapse SDK, with IPFS indexing on. If the wallet's providers already serve the CID, the upload is skipped.
+3. Stores the CAR on two storage providers through the Synapse SDK, with IPFS indexing on.
 4. Waits until a provider serves the new CID.
 5. Sets the DNSLink TXT record to the new CID.
 6. Sets the ENS name's contenthash to the new CID.
 
-Both targets are optional. With neither, the action only uploads. A target that already points at the CID is left alone, so a failed run can be re-run: it stores nothing twice and updates only what is behind.
+Both targets are optional. With neither, the action only uploads. A target that already points at the CID is left alone.
 
 ## Usage
 
@@ -75,6 +75,7 @@ One wallet does both jobs.
 The DNS zone must be on Cloudflare.
 
 - Create an API token with the DNS Write permission, limited to the one zone, and store it as a secret.
+- Pass the token only to the job that publishes. A dry run on a pull request works without it and should not receive it.
 - The zone ID is on the domain's Overview page in the Cloudflare dashboard.
 
 The action sets the TXT record `_dnslink.<name>` to `dnslink=/ipfs/<cid>` with a TTL of 300 seconds. It updates the record in place, creates it when the name has none, and fails if the name has more than one DNSLink record. A dry run without the token skips the DNSLink read.

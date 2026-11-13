@@ -58,13 +58,9 @@ async function main() {
 
   const ensCurrent = useEns && previousCid === rootCid
   const dnslinkCurrent = useDnslink && dnslinkPreviousCid === rootCid
-  const targets = [
-    ...(useEns ? [ensCurrent] : []),
-    ...(dnslinkName !== '' ? [dnslinkCurrent] : []),
-  ]
   const previous = { 'previous-cid': previousCid, 'dnslink-previous-cid': dnslinkPreviousCid }
 
-  if (targets.length > 0 && targets.every(Boolean)) {
+  if ((useEns || dnslinkName !== '') && (!useEns || ensCurrent) && (dnslinkName === '' || dnslinkCurrent)) {
     log('Content unchanged, nothing to publish')
     output({ cid: rootCid, ...previous, changed: 'false' })
     summary([`Already pointing at \`${rootCid}\`. Nothing published.`])
@@ -80,7 +76,7 @@ async function main() {
   if (privateKey === '') throw new Error('private-key is required')
 
   const stored = await upload({ car, rootCid, privateKey, network, copies, log })
-  if (stored.uploaded) log(`Piece CID: ${stored.pieceCid}`)
+  log(`Piece CID: ${stored.pieceCid}`)
   for (const failure of stored.failed) log(`Provider ${failure.providerId} failed: ${failure.error}`)
 
   const served = await verifyRetrieval({ rootCid, copies: stored.copies, timeoutMs, log })
@@ -106,7 +102,7 @@ async function main() {
   summary([
     `**Published** \`${rootCid}\``,
     '',
-    ...(stored.uploaded ? [`- Piece: \`${stored.pieceCid}\``] : ['- Already stored, upload skipped']),
+    `- Piece: \`${stored.pieceCid}\``,
     `- Copies: ${stored.copies.map((copy) => `provider ${copy.providerId} (data set ${copy.dataSetId})`).join(', ')}`,
     `- Retrieval verified on: ${served.map((id) => `provider ${id}`).join(', ')}`,
     ...(useDnslink && !dnslinkCurrent
